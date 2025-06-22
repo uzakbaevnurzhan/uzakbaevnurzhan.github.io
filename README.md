@@ -1,0 +1,1 @@
+# uzakbaevnurzhan.github.io
