@@ -1,0 +1,614 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Лесной Оракул [Феникс]</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0d1117" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        :root {
+            --font-family: 'Inter', sans-serif;
+            --font-size-m: clamp(14px, 2.5vw, 16px);
+            --font-size-s: clamp(12px, 2vw, 14px);
+            --font-size-l: clamp(16px, 3vw, 18px);
+            --primary: #58a6ff;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --bg-chat: #0d1117;
+            --bg-msg-user: #21262d;
+            --bg-msg-ai: #161b22;
+            --border: #30363d;
+            --header: rgba(22, 27, 34, 0.8);
+            --modal: #161b22;
+        }
+        html { font-size: var(--font-size-m); }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            background-color: var(--bg-chat);
+            color: var(--text);
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        #app-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-color: #0d1117;
+        }
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-chat);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: transparent;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 clamp(8px, 2vw, 16px);
+        }
+        .chat-header {
+            padding: clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px);
+            background-color: var(--header);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .chat-header h1 {
+            margin: 0;
+            font-size: clamp(1rem, 3vw, 1.25rem);
+            font-weight: 600;
+        }
+        .chat-box {
+            flex-grow: 1;
+            padding: clamp(8px, 2vw, 16px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(8px, 2vw, 16px);
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        .chat-input-area {
+            padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 16px);
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+            background-color: var(--header);
+            backdrop-filter: blur(10px);
+            box-sizing: border-box;
+        }
+        .message {
+            max-width: 70%;
+            line-height: 1.6;
+            border-radius: 18px;
+            padding: clamp(8px, 2vw, 12px) clamp(12px, 3vw, 16px);
+            position: relative;
+            animation: slideUp 0.4s ease-out;
+            font-size: var(--font-size-m);
+        }
+        .user-message {
+            background-color: var(--bg-msg-user);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .gemini-message {
+            background-color: var(--bg-msg-ai);
+            border: 1px solid var(--border);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .gemini-message .sender {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: block;
+            font-size: var(--font-size-s);
+        }
+        .content img {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+        .input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            box-sizing: border-box;
+        }
+        .input-controls {
+            display: flex;
+            flex-grow: 1;
+            background-color: var(--bg-msg-ai);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: clamp(4px, 1vw, 6px);
+            align-items: center;
+            min-width: 0;
+            max-width: 100%;
+        }
+        #userInput {
+            flex-grow: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-size: var(--font-size-m);
+            padding: clamp(6px, 1.5vw, 8px) clamp(8px, 2vw, 12px);
+            resize: none;
+            max-height: 150px;
+            box-sizing: border-box;
+        }
+        .chat-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            padding: clamp(6px, 1.5vw, 8px);
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .chat-btn:hover {
+            color: var(--primary);
+        }
+        #sendButton {
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: clamp(36px, 4vw, 40px);
+            height: clamp(36px, 4vw, 40px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            cursor: pointer;
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            border: none;
+            margin: 0 clamp(4px, 1vw, 6px);
+        }
+        #sendButton:disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+        }
+        #imagePreviewContainer {
+            margin-bottom: 8px;
+            position: relative;
+            width: clamp(80px, 15vw, 100px);
+            height: clamp(80px, 15vw, 100px);
+        }
+        #imagePreview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        #removeImageBtn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ff4d4d;
+            color: white;
+            border: 2px solid var(--bg-chat);
+            border-radius: 50%;
+            width: clamp(24px, 3vw, 28px);
+            height: clamp(24px, 3vw, 28px);
+            cursor: pointer;
+            font-weight: bold;
+            font-size: var(--font-size-s);
+        }
+        #historyModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: var(--modal);
+            color: var(--text);
+            padding: clamp(16px, 3vw, 20px);
+            border-radius: 15px;
+            width: clamp(80%, 90vw, 90%);
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        #toast-container {
+            position: fixed;
+            bottom: clamp(16px, 3vw, 20px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            width: clamp(80%, 90vw, 90%);
+            max-width: 500px;
+        }
+        .toast {
+            background: #ff4d4d;
+            color: white;
+            padding: clamp(8px, 2vw, 10px) clamp(16px, 3vw, 20px);
+            border-radius: 8px;
+            margin-top: 10px;
+            animation: slideUp 0.4s ease-out, fadeOut 3s 2s forwards;
+            font-size: var(--font-size-s);
+            text-align: center;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+        @media (min-width: 769px) {
+            .chat-container {
+                padding: 0 32px;
+            }
+            .message {
+                max-width: 70%;
+                font-size: var(--font-size-l);
+            }
+            .input-controls {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            #userInput {
+                font-size: var(--font-size-l);
+            }
+            .chat-header h1 {
+                font-size: 1.5rem;
+            }
+            .modal-content {
+                width: 60%;
+                max-width: 700px;
+            }
+        }
+        @media (max-width: 768px) {
+            .chat-container {
+                padding: 0 8px;
+            }
+            .message {
+                max-width: 85%;
+                font-size: var(--font-size-m);
+            }
+            .input-wrapper {
+                flex-wrap: wrap;
+            }
+            .input-controls {
+                width: 100%;
+            }
+            #sendButton {
+                margin: 0 8px;
+            }
+            .modal-content {
+                width: 90%;
+                max-width: 500px;
+            }
+        }
+        @media (max-width: 480px) {
+            .message {
+                max-width: 90%;
+                font-size: var(--font-size-s);
+            }
+            .chat-header h1 {
+                font-size: 1rem;
+            }
+            #userInput {
+                font-size: var(--font-size-s);
+                padding: 6px 8px;
+            }
+            #sendButton {
+                width: 32px;
+                height: 32px;
+                font-size: 1.2rem;
+                margin: 0 6px;
+            }
+            #imagePreviewContainer {
+                width: 80px;
+                height: 80px;
+            }
+            .chat-btn {
+                font-size: 1.2rem;
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="splash-screen"><h1>Лесной Оракул</h1></div>
+    <div id="toast-container"></div>
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1 id="headerTitle">Оракул</h1>
+            <div>
+                <button id="historyBtn" class="chat-btn" title="История">📜</button>
+            </div>
+        </header>
+        <main class="chat-box" id="chatBox"></main>
+        <footer class="chat-input-area">
+            <div id="dynamic-content-area"></div>
+            <div class="input-wrapper">
+                <div class="input-controls">
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" />
+                    <button id="uploadBtn" class="chat-btn" title="Прикрепить изображение">🖼️</button>
+                    <textarea id="userInput" placeholder="Спросите или введите команду..." rows="1"></textarea>
+                    <button id="sendButton" title="Отправить" disabled>➤</button>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <div id="historyModal">
+        <div class="modal-content">
+            <h2>История переписки</h2>
+            <div id="historyContent"></div>
+            <button id="closeHistoryBtn">Закрыть</button>
+        </div>
+    </div>
+
+    <audio id="soundSend" src="https://actions.google.com/sounds/v1/ui/page_turn.ogg"></audio>
+    <audio id="soundReceive" src="https://actions.google.com/sounds/v1/flicks/flick_stand_switch_on.ogg"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        window.addEventListener('load', () => {
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            setTimeout(() => splash.remove(), 500);
+            if (window.hljs) hljs.highlightAll();
+        });
+    </script>
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        const API_KEY = "ВАШ_API_КЛЮЧ"; // Замените на действительный ключ
+        let genAI, model, config = { soundSend: true, soundReceive: true }, isSending = false, imageBase64 = null, history = [];
+
+        const DOM = {
+            chatBox: document.getElementById('chatBox'),
+            userInput: document.getElementById('userInput'),
+            sendButton: document.getElementById('sendButton'),
+            historyBtn: document.getElementById('historyBtn'),
+            historyModal: document.getElementById('historyModal'),
+            historyContent: document.getElementById('historyContent'),
+            closeHistoryBtn: document.getElementById('closeHistoryBtn'),
+            uploadBtn: document.getElementById('uploadBtn'),
+            imageUpload: document.getElementById('imageUpload'),
+            dynamicContent: document.getElementById('dynamic-content-area'),
+            soundSend: document.getElementById('soundSend'),
+            soundReceive: document.getElementById('soundReceive'),
+            toastContainer: document.getElementById('toast-container')
+        };
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            DOM.toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        function initializeApp() {
+            DOM.sendButton.addEventListener('click', sendMessage);
+            DOM.historyBtn.addEventListener('click', toggleHistory);
+            DOM.closeHistoryBtn.addEventListener('click', toggleHistory);
+            DOM.userInput.addEventListener('input', updateSendButtonState);
+            loadHistory();
+        }
+
+        function toggleHistory() {
+            DOM.historyModal.style.display = DOM.historyModal.style.display === 'none' ? 'flex' : 'none';
+            if (DOM.historyModal.style.display === 'flex') {
+                displayHistory();
+            }
+        }
+
+        function updateSendButtonState() {
+            DOM.sendButton.disabled = !DOM.userInput.value.trim() && !imageBase64;
+        }
+
+        async function sendMessage() {
+            if (isSending) return;
+            const text = DOM.userInput.value.trim();
+            if (!text && !imageBase64) return;
+            isSending = true;
+            DOM.sendButton.disabled = true;
+
+            const userParts = [];
+            if (text) userParts.push({ text });
+            if (imageBase64) userParts.push({ inlineData: { mimeType: 'image/jpeg', data: imageBase64.split(',')[1] } });
+            const userContent = { role: 'user', parts: userParts };
+            history.push(userContent);
+
+            appendMessage('user', text, imageBase64);
+            if (config.soundSend) DOM.soundSend.play();
+
+            DOM.userInput.value = '';
+            clearImage();
+            const typing = showTyping();
+
+            try {
+                const result = await model.generateContent({ contents: history });
+                const response = result.response;
+                const responseText = response.text();
+                const modelContent = { role: 'model', parts: [{ text: responseText }] };
+                history.push(modelContent);
+                saveHistory();
+                hideTyping(typing);
+                if (config.soundReceive) DOM.soundReceive.play();
+                appendMessage('gemini', responseText);
+            } catch (err) {
+                hideTyping(typing);
+                showToast('Ошибка: ' + err.message);
+            } finally {
+                isSending = false;
+                updateSendButtonState();
+            }
+        }
+
+        function appendMessage(sender, text, image) {
+            const msg = document.createElement('div');
+            msg.className = `message ${sender}-message`;
+            const content = document.createElement('div');
+            content.className = 'content';
+            if (sender === 'gemini') {
+                const html = marked.parse(text, { breaks: true, gfm: true });
+                content.innerHTML = `<span class='sender'>Оракул</span>` + html;
+            } else {
+                content.textContent = text;
+            }
+            if (image) {
+                const img = document.createElement('img');
+                img.src = image;
+                content.appendChild(img);
+            }
+            msg.appendChild(content);
+            DOM.chatBox.appendChild(msg);
+            DOM.chatBox.scrollTop = DOM.chatBox.scrollHeight;
+        }
+
+        function showTyping() {
+            const indicator = document.createElement('div');
+            indicator.className = `message gemini-message`;
+            indicator.innerHTML = `<i>Оракул думает...</i>`;
+            DOM.chatBox.appendChild(indicator);
+            return indicator;
+        }
+
+        function hideTyping(ind) {
+            ind.remove();
+        }
+
+        function clearImage() {
+            imageBase64 = null;
+            DOM.imageUpload.value = '';
+            DOM.dynamicContent.innerHTML = '';
+            updateSendButtonState();
+        }
+
+        function saveHistory() {
+            localStorage.setItem('chatHistory', JSON.stringify(history));
+        }
+
+        function loadHistory() {
+            const saved = localStorage.getItem('chatHistory');
+            if (saved) {
+                history = JSON.parse(saved);
+                history.forEach(msg => {
+                    const text = msg.parts.find(part => part.text)?.text || '';
+                    const image = msg.parts.find(part => part.inlineData)?.inlineData.data ? `data:image/jpeg;base64,${msg.parts.find(part => part.inlineData).inlineData.data}` : null;
+                    appendMessage(msg.role === 'user' ? 'user' : 'gemini', text, image);
+                });
+            }
+        }
+
+        function displayHistory() {
+            DOM.historyContent.innerHTML = '';
+            history.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `message ${msg.role === 'user' ? 'user-message' : 'gemini-message'}`;
+                const content = document.createElement('div');
+                content.className = 'content';
+                const text = msg.parts.find(part => part.text)?.text || '';
+                if (msg.role === 'model') {
+                    const html = marked.parse(text, { breaks: true, gfm: true });
+                    content.innerHTML = `<span class='sender'>Оракул</span>` + html;
+                } else {
+                    content.textContent = text;
+                }
+                const image = msg.parts.find(part => part.inlineData)?.inlineData.data ? `data:image/jpeg;base64,${msg.parts.find(part => part.inlineData).inlineData.data}` : null;
+                if (image) {
+                    const img = document.createElement('img');
+                    img.src = image;
+                    content.appendChild(img);
+                }
+                div.appendChild(content);
+                DOM.historyContent.appendChild(div);
+            });
+        }
+
+        DOM.uploadBtn.addEventListener('click', () => DOM.imageUpload.click());
+        DOM.imageUpload.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                imageBase64 = reader.result;
+                DOM.dynamicContent.innerHTML = `<div id='imagePreviewContainer'><img id='imagePreview' src='${imageBase64}'/><button id='removeImageBtn' title='Удалить'>✖</button></div>`;
+                document.getElementById('removeImageBtn').addEventListener('click', clearImage);
+                updateSendButtonState();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        if (!API_KEY || API_KEY.includes('AIzaSyD0oMbkzcwzWKryAusB7ebkgF4nn7Bu3us')) {
+            showToast('ОШИБКА: API-ключ не найден.');
+        } else {
+            genAI = new GoogleGenerativeAI(API_KEY);
+            model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
+            DOM.sendButton.disabled = true;
+            initializeApp();
+        }
+    </script>
+</body>
+</html>
