@@ -468,7 +468,16 @@
             try {
                 const result = await model.generateContent({ contents: [...history] });
                 const response = result.response;
+                
+                if (!response) {
+                    throw new Error('Получен пустой ответ от API');
+                }
+                
                 const responseText = response.text();
+                if (!responseText) {
+                    throw new Error('Получен пустой текст ответа');
+                }
+                
                 const modelContent = { role: 'model', parts: [{ text: responseText }] };
                 history.push(modelContent);
                 saveHistory();
@@ -477,7 +486,20 @@
                 appendMessage('gemini', responseText);
             } catch (err) {
                 hideTyping(typing);
-                showToast('Ошибка: ' + err.message);
+                let errorMessage = 'Произошла ошибка при получении ответа';
+                
+                if (err.message.includes('API key')) {
+                    errorMessage = 'Ошибка API ключа. Проверьте настройки';
+                } else if (err.message.includes('quota')) {
+                    errorMessage = 'Превышен лимит запросов API';
+                } else if (err.message.includes('network') || err.message.includes('fetch')) {
+                    errorMessage = 'Ошибка сети. Проверьте подключение к интернету';
+                } else if (err.message) {
+                    errorMessage = `Ошибка: ${err.message}`;
+                }
+                
+                showToast(errorMessage);
+                console.error('Полная ошибка:', err);
             } finally {
                 isSending = false;
                 updateSendButtonState();
