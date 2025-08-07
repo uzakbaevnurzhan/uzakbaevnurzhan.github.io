@@ -425,6 +425,7 @@
         function initializeApp() {
             DOM.sendButton.addEventListener('click', sendMessage);
             DOM.historyBtn.addEventListener('click', toggleHistory);
+            DOM.clearHistoryBtn.addEventListener('click', clearHistory);
             DOM.closeHistoryBtn.addEventListener('click', toggleHistory);
             DOM.userInput.addEventListener('input', updateSendButtonState);
             DOM.userInput.addEventListener('keypress', (e) => {
