@@ -437,6 +437,15 @@
             loadHistory();
         }
 
+        function clearHistory() {
+            if (confirm('Вы уверены, что хотите очистить всю историю переписки?')) {
+                history = [];
+                localStorage.removeItem('chatHistory');
+                DOM.chatBox.innerHTML = '';
+                showToast('История очищена', 'success');
+            }
+        }
+
         function toggleHistory() {
             DOM.historyModal.style.display = DOM.historyModal.style.display === 'none' ? 'flex' : 'none';
             if (DOM.historyModal.style.display === 'flex') {
