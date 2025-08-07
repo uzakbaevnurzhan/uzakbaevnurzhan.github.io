@@ -24,6 +24,7 @@ class StaticWebAppTester:
         
         try:
             response = requests.get(url, timeout=10)
+            response.encoding = 'utf-8'  # Ensure proper encoding
             success = response.status_code == expected_status
             
             if success and check_content:
