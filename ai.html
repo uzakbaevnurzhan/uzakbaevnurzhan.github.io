@@ -574,7 +574,7 @@
             reader.readAsDataURL(file);
         });
 
-        if (!API_KEY || API_KEY.includes("AIzaSyAA6tHh2635MndLLPqYKa3e0j-rg3uNJfA")) {
+        if (!API_KEY || API_KEY === "ВАШ_API_КЛЮЧ") {
             showToast('ОШИБКА: API-ключ не найден.');
         } else {
             genAI = new GoogleGenerativeAI(API_KEY);
