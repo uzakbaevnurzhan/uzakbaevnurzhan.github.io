@@ -407,9 +407,14 @@
             toastContainer: document.getElementById('toast-container')
         };
 
-        function showToast(message) {
+        function showToast(message, type = 'error') {
             const toast = document.createElement('div');
             toast.className = 'toast';
+            if (type === 'success') {
+                toast.style.backgroundColor = '#4caf50';
+            } else if (type === 'warning') {
+                toast.style.backgroundColor = '#ff9800';
+            }
             toast.textContent = message;
             DOM.toastContainer.appendChild(toast);
             setTimeout(() => toast.remove(), 5000);
