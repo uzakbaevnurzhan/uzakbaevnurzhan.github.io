@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "pages/api/gemini.js", "use": "@vercel/node" },
+    { "src": "package.json", "use": "@vercel/next" }
+  ]
+}
