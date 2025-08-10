@@ -1,0 +1,5 @@
+flask
+requests
+flask-session
+werkzeug
+python-multipart
