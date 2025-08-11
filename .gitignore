@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite
+*.sqlite3
+
+# buildozer
+.bin/
+bin/
+.buildozer/
+.gradle/
+local.properties
+.keystore
+
+# virtualenvs
+.venv/
+venv/
+
+# data
+/data/

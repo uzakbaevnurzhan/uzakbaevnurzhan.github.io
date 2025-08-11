@@ -20,14 +20,21 @@ from werkzeug.security import generate_password_hash, check_password_hash
 try:
     import requests
     from bs4 import BeautifulSoup
+except Exception as e:
+    print("Missing core packages. Install requirements:")
+    print("pip install flask requests beautifulsoup4 lxml werkzeug cryptography")
+    raise
+
+# Selenium is optional; if unavailable, we will fall back to requests-based crawling
+USE_SELENIUM = False
+try:
     from selenium import webdriver
     from selenium.webdriver.chrome.options import Options
     from selenium.common.exceptions import WebDriverException
     from webdriver_manager.chrome import ChromeDriverManager
-except Exception as e:
-    print("Missing packages or Selenium/driver. Install requirements:")
-    print("pip install flask selenium webdriver-manager requests beautifulsoup4 lxml werkzeug cryptography")
-    raise
+    USE_SELENIUM = True
+except Exception:
+    print("Selenium not available. Falling back to requests-only crawling.")
 
 # Optional encryption
 USE_FERNET = False
@@ -40,15 +47,14 @@ except Exception:
 
 # -------- CONFIG --------
 BASE_SITE = "https://sites.google.com/view/uzakbaevnurzhan"
-DATA_DIR = os.path.join(os.getcwd(), "data")
+DATA_DIR = os.environ.get("APP_DATA_DIR", os.path.join(os.getcwd(), "data"))
 SITE_COPY_DIR = os.path.join(DATA_DIR, "site_copy")
 DB_PATH = os.path.join(DATA_DIR, "app.db")
 BACKUP_DIR = os.path.join(DATA_DIR, "backups")
 SECRET_KEY_FILE = os.path.join(DATA_DIR, "secret.key")
 FERNET_KEY_FILE = os.path.join(DATA_DIR, "fernet.key")
 
-AUTO_CHECK_INTERVAL = 60 * 60  # 1 
-hour
+AUTO_CHECK_INTERVAL = 60 * 60  # 1 hour
 MAX_VERSIONS_DAYS = 30
 MAX_VERSIONS_KEEP = 10
 BACKGROUND_THREAD = True
