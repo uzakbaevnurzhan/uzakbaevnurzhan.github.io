@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+
+  <title>uzakbaevnurzhan - Account</title>
+
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.4/auth0-spa-js.production.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101114;
+      --bg-2: #17191d;
+      --panel: rgba(27, 29, 34, .92);
+      --panel-strong: #202329;
+      --text: #f7f7f8;
+      --muted: #adb4c0;
+      --line: rgba(255, 255, 255, .12);
+      --line-strong: rgba(255, 255, 255, .2);
+      --accent: #14b8a6;
+      --accent-strong: #0f766e;
+      --accent-soft: rgba(20, 184, 166, .16);
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --shadow: 0 24px 80px rgba(0, 0, 0, .34);
+      --radius: 8px;
+      --focus: 0 0 0 3px rgba(20, 184, 166, .28);
+    }
+
+    [data-theme="light"] {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --bg-2: #ffffff;
+      --panel: rgba(255, 255, 255, .94);
+      --panel-strong: #ffffff;
+      --text: #17191d;
+      --muted: #596271;
+      --line: rgba(23, 25, 29, .12);
+      --line-strong: rgba(23, 25, 29, .2);
+      --accent: #0d9488;
+      --accent-strong: #0f766e;
+      --accent-soft: rgba(13, 148, 136, .12);
+      --shadow: 0 18px 60px rgba(21, 30, 43, .12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      font-family: Arial, "Segoe UI", Helvetica, sans-serif;
+      background:
+        linear-gradient(135deg, rgba(20, 184, 166, .16), transparent 28%),
+        linear-gradient(315deg, rgba(245, 158, 11, .12), transparent 24%),
+        linear-gradient(180deg, var(--bg-2), var(--bg));
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 44px;
+      border: 0;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    summary:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      width: min(1180px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 28px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      color: white;
+      background:
+        linear-gradient(135deg, #0f766e, #14b8a6 48%, #f59e0b);
+      box-shadow: 0 14px 30px rgba(15, 118, 110, .26);
+      flex: 0 0 auto;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.1;
+      letter-spacing: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .brand-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .04);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--yellow);
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, .12);
+    }
+
+    .status-pill.ready .status-dot {
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, .14);
+    }
+
+    .status-pill.error .status-dot {
+      background: var(--red);
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, .14);
+    }
+
+    .icon-button {
+      width: 42px;
+      height: 42px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(255, 255, 255, .04);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .icon-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+      background: rgba(255, 255, 255, .08);
+    }
+
+    .layout {
+      display: block;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-panel {
+      max-width: 860px;
+      margin: 0 auto;
+      min-height: 620px;
+      padding: 28px;
+      display: grid;
+      grid-template-rows: auto auto auto;
+      gap: 26px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 54px 54px;
+      mask-image: linear-gradient(160deg, black, transparent 70%);
+      opacity: .18;
+      pointer-events: none;
+    }
+
+    .hero-content,
+    .state-wrap,
+    .hero-footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    .hero-title {
+      max-width: 700px;
+      margin-bottom: 14px;
+      font-size: clamp(34px, 4.6vw, 54px);
+      line-height: 1;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    .hero-copy {
+      max-width: 660px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.65;
+      text-wrap: pretty;
+    }
+
+    .state-wrap {
+      display: grid;
+      align-content: start;
+    }
+
+    .login-state,
+    .profile-state {
+      display: none;
+    }
+
+    .login-state.active,
+    .profile-state.active {
+      display: block;
+    }
+
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+    }
+
+    .captcha-box {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .045);
+    }
+
+    .captcha-row {
+      display: grid;
+      grid-template-columns: minmax(120px, .5fr) minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .captcha-code {
+      min-height: 46px;
+      display: grid;
+      place-items: center;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      color: var(--text);
+      background:
+        linear-gradient(135deg, rgba(20, 184, 166, .12), transparent),
+        rgba(255, 255, 255, .04);
+      font: 800 20px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      letter-spacing: 0;
+      user-select: none;
+    }
+
+    .captcha-input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      color: var(--text);
+      background: rgba(255, 255, 255, .05);
+      outline: none;
+    }
+
+    .captcha-input:focus {
+      border-color: rgba(20, 184, 166, .58);
+      box-shadow: var(--focus);
+    }
+
+    .captcha-note {
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .captcha-note.ok {
+      color: #86efac;
+    }
+
+    [data-theme="light"] .captcha-note.ok {
+      color: #166534;
+    }
+
+    .method-button {
+      min-height: 126px;
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      justify-items: start;
+      text-align: left;
+      color: var(--text);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .055);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .method-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      border-color: rgba(20, 184, 166, .52);
+      background: var(--accent-soft);
+    }
+
+    .method-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: var(--radius);
+      background: var(--panel-strong);
+      color: var(--accent);
+      border: 1px solid var(--line);
+    }
+
+    .method-title {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .method-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .banner {
+      margin-top: 16px;
+      min-height: 46px;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .055);
+      color: var(--muted);
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .banner.active {
+      display: flex;
+    }
+
+    .banner.error {
+      color: #fecaca;
+      border-color: rgba(239, 68, 68, .38);
+      background: rgba(239, 68, 68, .12);
+    }
+
+    [data-theme="light"] .banner.error {
+      color: #991b1b;
+    }
+
+    .banner.success {
+      color: #bbf7d0;
+      border-color: rgba(34, 197, 94, .38);
+      background: rgba(34, 197, 94, .12);
+    }
+
+    [data-theme="light"] .banner.success {
+      color: #166534;
+    }
+
+    .hero-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+
+    .inline-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .text-button {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(255, 255, 255, .04);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+      text-decoration: none;
+      border-radius: var(--radius);
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .text-button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+      background: rgba(255, 255, 255, .08);
+    }
+
+    .text-button.primary {
+      border-color: rgba(20, 184, 166, .56);
+      background: var(--accent);
+      color: #06201d;
+    }
+
+    .text-button.danger {
+      border-color: rgba(239, 68, 68, .42);
+      color: #fecaca;
+      background: rgba(239, 68, 68, .13);
+    }
+
+    [data-theme="light"] .text-button.danger {
+      color: #991b1b;
+    }
+
+    .profile-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .avatar-wrap {
+      width: 92px;
+      height: 92px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .profile-name {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 44px);
+      line-height: 1.05;
+      letter-spacing: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .profile-email {
+      margin: 0;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .badge {
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .04);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .badge.good {
+      color: #bbf7d0;
+      border-color: rgba(34, 197, 94, .36);
+      background: rgba(34, 197, 94, .12);
+    }
+
+    [data-theme="light"] .badge.good {
+      color: #166534;
+    }
+
+    .badge.warn {
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, .36);
+      background: rgba(245, 158, 11, .12);
+    }
+
+    [data-theme="light"] .badge.warn {
+      color: #92400e;
+    }
+
+    .profile-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .data-item {
+      min-height: 96px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .045);
+    }
+
+    .data-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .copy-button {
+      width: 30px;
+      height: 30px;
+      min-height: 30px;
+      display: inline-grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: transparent;
+    }
+
+    .copy-button:hover:not(:disabled) {
+      color: var(--text);
+      border-color: var(--line-strong);
+    }
+
+    .data-value {
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      min-height: 88px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: rgba(255, 255, 255, .04);
+      display: grid;
+      align-content: space-between;
+      gap: 10px;
+    }
+
+    .metric-value {
+      font-size: 20px;
+      font-weight: 850;
+      overflow-wrap: anywhere;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    details {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, .04);
+      overflow: hidden;
+    }
+
+    summary {
+      min-height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 12px;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 800;
+      list-style: none;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .icon {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2.1;
+      flex: 0 0 auto;
+    }
+
+    @media (max-width: 940px) {
+      .hero-panel {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        padding: 18px;
+      }
+
+      .topbar {
+        align-items: center;
+        gap: 10px;
+      }
+
+      .brand {
+        gap: 10px;
+      }
+
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+      }
+
+      .brand-title {
+        max-width: 150px;
+        font-size: 18px;
+      }
+
+      .top-actions {
+        gap: 8px;
+        flex-wrap: nowrap;
+      }
+
+      .status-pill {
+        max-width: 104px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .hero-panel {
+        padding: 18px;
+      }
+
+      .method-grid,
+      .data-grid,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .captcha-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .captcha-code {
+        grid-column: 1 / -1;
+      }
+
+      .captcha-input {
+        min-width: 0;
+      }
+
+      .profile-head {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="topbar" aria-label="Верхняя панель">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">uz</div>
+        <div class="brand-text">
+          <p class="brand-title">uzakbaevnurzhan</p>
+          <p class="brand-subtitle">Account center</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="status-pill" id="connectionStatus" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="connectionText">Запуск</span>
+        </div>
+
+        <button class="icon-button" id="themeButton" type="button" aria-label="Сменить тему" title="Сменить тему">
+          <i data-lucide="sun-moon" class="icon"></i>
+        </button>
+      </div>
+    </header>
+
+    <section class="layout" aria-label="Аккаунт">
+      <section class="panel hero-panel">
+        <div class="hero-content">
+          <p class="eyebrow">
+            <i data-lucide="shield-check" class="icon"></i>
+            Auth0 secure login
+          </p>
+          <h1 class="hero-title">Вход через Google или Яндекс.</h1>
+          <p class="hero-copy">
+            Быстрая авторизация через социальный аккаунт и просмотр данных профиля.
+          </p>
+        </div>
+
+        <div class="state-wrap">
+          <section class="login-state active" id="loginState" aria-label="Вход">
+            <div class="captcha-box" aria-label="Капча перед входом">
+              <div class="captcha-row">
+                <div class="captcha-code" id="captchaCode">----</div>
+                <input class="captcha-input" id="captchaInput" type="text" inputmode="text" autocomplete="off" placeholder="Введите код" aria-label="Введите код капчи">
+                <button class="icon-button" id="refreshCaptchaButton" type="button" aria-label="Обновить капчу" title="Обновить капчу">
+                  <i data-lucide="refresh-cw" class="icon"></i>
+                </button>
+              </div>
+              <div class="captcha-note" id="captchaNote">Сначала введите код, потом выберите способ входа.</div>
+            </div>
+
+            <div class="method-grid">
+              <button class="method-button" id="googleLoginButton" type="button" disabled>
+                <span class="method-icon"><i data-lucide="globe" class="icon"></i></span>
+                <span class="method-title">Google</span>
+                <span class="method-note">Вход через Google аккаунт</span>
+              </button>
+
+              <button class="method-button" id="yandexLoginButton" type="button" disabled>
+                <span class="method-icon"><i data-lucide="search" class="icon"></i></span>
+                <span class="method-title">Яндекс</span>
+                <span class="method-note">Вход через Yandex ID</span>
+              </button>
+
+            </div>
+
+            <div class="banner active" id="appMessage" role="status" aria-live="polite">
+              <i data-lucide="loader-circle" class="icon"></i>
+              <span id="appMessageText">Подключение к Auth0...</span>
+            </div>
+          </section>
+
+          <section class="profile-state" id="profileState" aria-label="Профиль">
+            <div class="profile-head">
+              <div class="avatar-wrap">
+                <img class="avatar" id="avatar" alt="Аватар пользователя">
+              </div>
+
+              <div>
+                <h2 class="profile-name" id="displayName">Пользователь</h2>
+                <p class="profile-email" id="displayEmail">Email не указан</p>
+                <div class="badges">
+                  <span class="badge" id="providerBadge">
+                    <i data-lucide="key-round" class="icon"></i>
+                    <span>Provider</span>
+                  </span>
+                  <span class="badge" id="verifiedBadge">
+                    <i data-lucide="mail-question" class="icon"></i>
+                    <span>Email</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-actions">
+              <button class="text-button primary" id="refreshButton" type="button">
+                <i data-lucide="refresh-cw" class="icon"></i>
+                Обновить
+              </button>
+              <button class="text-button" id="copyProfileButton" type="button">
+                <i data-lucide="copy" class="icon"></i>
+                Копировать профиль
+              </button>
+              <a class="text-button" id="homeButton" href="https://sites.google.com/view/uzakbaevnurzhan/">
+                <i data-lucide="external-link" class="icon"></i>
+                Главный сайт
+              </a>
+              <button class="text-button danger" id="logoutButton" type="button">
+                <i data-lucide="log-out" class="icon"></i>
+                Выйти
+              </button>
+            </div>
+
+            <div class="data-grid">
+              <div class="data-item">
+                <div class="data-label">
+                  <span>Имя</span>
+                  <button class="copy-button" type="button" data-copy-target="userName" aria-label="Копировать имя" title="Копировать имя">
+                    <i data-lucide="copy" class="icon"></i>
+                  </button>
+                </div>
+                <div class="data-value" id="userName">-</div>
+              </div>
+
+              <div class="data-item">
+                <div class="data-label">
+                  <span>Email</span>
+                  <button class="copy-button" type="button" data-copy-target="userEmail" aria-label="Копировать email" title="Копировать email">
+                    <i data-lucide="copy" class="icon"></i>
+                  </button>
+                </div>
+                <div class="data-value" id="userEmail">-</div>
+              </div>
+
+              <div class="data-item">
+                <div class="data-label">
+                  <span>Nickname</span>
+                  <button class="copy-button" type="button" data-copy-target="userNickname" aria-label="Копировать nickname" title="Копировать nickname">
+                    <i data-lucide="copy" class="icon"></i>
+                  </button>
+                </div>
+                <div class="data-value" id="userNickname">-</div>
+              </div>
+
+              <div class="data-item">
+                <div class="data-label">
+                  <span>User ID</span>
+                  <button class="copy-button" type="button" data-copy-target="userId" aria-label="Копировать user id" title="Копировать user id">
+                    <i data-lucide="copy" class="icon"></i>
+                  </button>
+                </div>
+                <div class="data-value" id="userId">-</div>
+              </div>
+            </div>
+
+            <div class="banner" id="profileMessage" role="status" aria-live="polite">
+              <i data-lucide="info" class="icon"></i>
+              <span id="profileMessageText"></span>
+            </div>
+          </section>
+        </div>
+
+        <div class="hero-footer">
+          <span id="redirectInfo">Redirect URI: проверка...</span>
+          <div class="inline-actions">
+            <button class="text-button" id="copyRedirectButton" type="button">
+              <i data-lucide="copy" class="icon"></i>
+              Redirect URI
+            </button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const AUTH0_DOMAIN = "uzakbaevnurzhan.us.auth0.com";
+    const AUTH0_CLIENT_ID = "QQSjuxMaZUyix1mBIaYIV7m7FOyXZBZA";
+    const YANDEX_CONNECTION = "yandex";
+    const MAIN_SITE = "https://sites.google.com/view/uzakbaevnurzhan/";
+    const STORAGE_KEYS = {
+      theme: "un_account_theme"
+    };
+
+    let auth0Client = null;
+    let currentUser = null;
+    let isBusy = false;
+    let captchaAnswer = "";
+    let captchaSolved = false;
+
+    const elements = {};
+
+    document.addEventListener("DOMContentLoaded", startApp);
+
+    async function startApp() {
+      bindElements();
+      bindEvents();
+      applySavedTheme();
+      updateRedirectInfo();
+      resetCaptcha();
+      renderIcons();
+      setConnection("loading", "Запуск");
+      showMessage("app", "Подключение к Auth0...");
+
+      await initAuth0();
+    }
+
+    function bindElements() {
+      [
+        "connectionStatus",
+        "connectionText",
+        "themeButton",
+        "loginState",
+        "profileState",
+        "captchaCode",
+        "captchaInput",
+        "captchaNote",
+        "refreshCaptchaButton",
+        "googleLoginButton",
+        "yandexLoginButton",
+        "appMessage",
+        "appMessageText",
+        "profileMessage",
+        "profileMessageText",
+        "displayName",
+        "displayEmail",
+        "avatar",
+        "providerBadge",
+        "verifiedBadge",
+        "refreshButton",
+        "copyProfileButton",
+        "homeButton",
+        "logoutButton",
+        "copyRedirectButton",
+        "redirectInfo",
+        "userName",
+        "userEmail",
+        "userNickname",
+        "userId"
+      ].forEach((id) => {
+        elements[id] = document.getElementById(id);
+      });
+    }
+
+    function bindEvents() {
+      elements.themeButton.addEventListener("click", toggleTheme);
+      elements.googleLoginButton.addEventListener("click", () => login("google"));
+      elements.yandexLoginButton.addEventListener("click", () => login("yandex"));
+      elements.captchaInput.addEventListener("input", validateCaptcha);
+      elements.refreshCaptchaButton.addEventListener("click", refreshCaptcha);
+      elements.refreshButton.addEventListener("click", refreshProfile);
+      elements.copyProfileButton.addEventListener("click", copyProfile);
+      elements.logoutButton.addEventListener("click", logout);
+      elements.copyRedirectButton.addEventListener("click", () => copyText(getRedirectUri(), "Redirect URI скопирован."));
+
+      document.querySelectorAll("[data-copy-target]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const target = document.getElementById(button.dataset.copyTarget);
+          copyText(target ? target.textContent : "", "Скопировано.");
+        });
+      });
+
+    }
+
+    async function initAuth0() {
+      if (!isHttpPage()) {
+        setConnection("error", "Нужен HTTP/HTTPS");
+        setLoginButtons(false);
+        showMessage("app", "Auth0 не работает через file://. Откройте страницу на GitHub Pages или через локальный HTTP сервер.", "error");
+        return;
+      }
+
+      try {
+        await waitForAuth0Sdk();
+
+        auth0Client = await auth0.createAuth0Client({
+          domain: AUTH0_DOMAIN,
+          clientId: AUTH0_CLIENT_ID,
+          cacheLocation: "localstorage",
+          authorizationParams: {
+            redirect_uri: getRedirectUri(),
+            scope: "openid profile email"
+          }
+        });
+
+        await processRedirectResult();
+
+        const loggedIn = await auth0Client.isAuthenticated();
+
+        if (loggedIn) {
+          await loadProfile();
+        } else {
+          renderLoggedOut();
+        }
+      } catch (error) {
+        currentUser = null;
+        elements.loginState.classList.add("active");
+        elements.profileState.classList.remove("active");
+        setLoginButtons(Boolean(auth0Client));
+        setConnection(auth0Client ? "ready" : "error", auth0Client ? "Готово" : "Ошибка");
+        showMessage("app", "Ошибка Auth0:\n" + getErrorMessage(error), "error");
+      }
+    }
+
+    async function processRedirectResult() {
+      const params = new URLSearchParams(window.location.search);
+
+      if (params.has("error")) {
+        const authError = params.get("error_description") || params.get("error") || "Auth0 вернул ошибку.";
+        cleanUrl();
+        throw new Error(authError);
+      }
+
+      if (!params.has("code") || !params.has("state")) {
+        return;
+      }
+
+      const result = await auth0Client.handleRedirectCallback();
+      const targetUrl = getSafeTargetUrl(result && result.appState && result.appState.targetUrl);
+      window.history.replaceState({}, document.title, targetUrl);
+    }
+
+    async function login(type) {
+      if (!auth0Client || isBusy) {
+        return;
+      }
+
+      if (!captchaSolved) {
+        showMessage("app", "Сначала пройдите капчу.", "error");
+        elements.captchaInput.focus();
+        return;
+      }
+
+      setBusy(true);
+      showMessage("app", "Переход к Auth0...");
+
+      const authorizationParams = {
+        redirect_uri: getRedirectUri(),
+        scope: "openid profile email"
+      };
+
+      if (type === "google") {
+        authorizationParams.connection = "google-oauth2";
+      }
+
+      if (type === "yandex") {
+        authorizationParams.connection = YANDEX_CONNECTION;
+      }
+
+      try {
+        await auth0Client.loginWithRedirect({
+          authorizationParams,
+          appState: {
+            targetUrl: window.location.pathname + window.location.hash
+          }
+        });
+      } catch (error) {
+        setBusy(false);
+        showMessage("app", getErrorMessage(error), "error");
+      }
+    }
+
+    async function refreshProfile() {
+      if (!auth0Client || isBusy) {
+        return;
+      }
+
+      setBusy(true);
+      showMessage("profile", "Обновление профиля...");
+
+      try {
+        await loadProfile();
+        showMessage("profile", "Профиль обновлен.", "success");
+      } catch (error) {
+        showMessage("profile", getErrorMessage(error), "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function loadProfile() {
+      currentUser = await auth0Client.getUser();
+
+      if (!currentUser) {
+        throw new Error("Auth0 не вернул данные пользователя.");
+      }
+
+      renderProfile(currentUser);
+    }
+
+    function renderLoggedOut() {
+      currentUser = null;
+      elements.loginState.classList.add("active");
+      elements.profileState.classList.remove("active");
+      setLoginButtons(Boolean(auth0Client));
+      setConnection("ready", "Готово");
+      showMessage("app", captchaSolved ? "Выберите способ входа." : "Введите код капчи, чтобы включить вход.", captchaSolved ? "success" : "");
+      renderIcons();
+    }
+
+    function renderProfile(user) {
+      const name = user.name || user.nickname || user.preferred_username || "Пользователь";
+      const email = user.email || "Email не указан";
+      const nickname = user.nickname || user.preferred_username || "-";
+      const userId = user.sub || "-";
+      const provider = getProvider(user.sub);
+      const avatarUrl = user.picture || getFallbackAvatar(name);
+
+      elements.loginState.classList.remove("active");
+      elements.profileState.classList.add("active");
+      elements.displayName.textContent = name;
+      elements.displayEmail.textContent = email;
+      elements.avatar.onerror = () => {
+        elements.avatar.onerror = null;
+        elements.avatar.src = getFallbackAvatar(name);
+      };
+      elements.avatar.src = avatarUrl;
+      elements.avatar.alt = "Аватар " + name;
+      elements.userName.textContent = name;
+      elements.userEmail.textContent = email;
+      elements.userNickname.textContent = nickname;
+      elements.userId.textContent = userId;
+      elements.providerBadge.querySelector("span").textContent = provider;
+      elements.verifiedBadge.querySelector("span").textContent = user.email_verified ? "Email подтвержден" : "Email не подтвержден";
+      elements.verifiedBadge.classList.toggle("good", Boolean(user.email_verified));
+      elements.verifiedBadge.classList.toggle("warn", !user.email_verified);
+      elements.providerBadge.classList.add("good");
+
+      setConnection("ready", "Вход выполнен");
+      setLoginButtons(false);
+      setBusy(false);
+      showMessage("profile", "", "");
+      renderIcons();
+    }
+
+    async function logout() {
+      if (!auth0Client || isBusy) {
+        return;
+      }
+
+      setBusy(true);
+      showMessage("profile", "Выход...");
+
+      try {
+        await auth0Client.logout({
+          logoutParams: {
+            returnTo: getRedirectUri()
+          }
+        });
+      } catch (error) {
+        setBusy(false);
+        showMessage("profile", getErrorMessage(error), "error");
+      }
+    }
+
+    async function copyProfile() {
+      if (!currentUser) {
+        return;
+      }
+
+      const profile = {
+        name: currentUser.name || null,
+        email: currentUser.email || null,
+        nickname: currentUser.nickname || currentUser.preferred_username || null,
+        user_id: currentUser.sub || null,
+        provider: getProvider(currentUser.sub),
+        email_verified: Boolean(currentUser.email_verified),
+        picture: currentUser.picture || null
+      };
+
+      await copyText(JSON.stringify(profile, null, 2), "Профиль скопирован.");
+    }
+
+    async function copyText(value, successMessage) {
+      const text = (value || "").trim();
+
+      if (!text || text === "-") {
+        showMessage(currentUser ? "profile" : "app", "Нечего копировать.", "error");
+        return;
+      }
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          fallbackCopy(text);
+        }
+
+        showMessage(currentUser ? "profile" : "app", successMessage || "Скопировано.", "success");
+      } catch (error) {
+        showMessage(currentUser ? "profile" : "app", "Не удалось скопировать: " + getErrorMessage(error), "error");
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+
+    function resetCaptcha() {
+      const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      captchaAnswer = "";
+
+      for (let i = 0; i < 5; i += 1) {
+        captchaAnswer += alphabet[Math.floor(Math.random() * alphabet.length)];
+      }
+
+      captchaSolved = false;
+      elements.captchaCode.textContent = captchaAnswer;
+      elements.captchaInput.value = "";
+      elements.captchaInput.disabled = false;
+      elements.captchaNote.textContent = "Сначала введите код, потом выберите способ входа.";
+      elements.captchaNote.classList.remove("ok");
+      setLoginButtons(Boolean(auth0Client));
+    }
+
+    function refreshCaptcha() {
+      resetCaptcha();
+      showMessage("app", "Капча обновлена. Введите новый код.");
+      elements.captchaInput.focus();
+    }
+
+    function validateCaptcha() {
+      const value = elements.captchaInput.value.trim().toUpperCase().replace(/\s/g, "");
+      captchaSolved = value === captchaAnswer;
+
+      if (captchaSolved) {
+        elements.captchaNote.textContent = "Капча пройдена. Теперь можно войти.";
+        elements.captchaNote.classList.add("ok");
+        showMessage("app", "Выберите способ входа.", "success");
+      } else {
+        elements.captchaNote.textContent = value ? "Код пока не совпадает." : "Сначала введите код, потом выберите способ входа.";
+        elements.captchaNote.classList.remove("ok");
+      }
+
+      setLoginButtons(Boolean(auth0Client));
+    }
+
+    function setBusy(value) {
+      isBusy = value;
+      setLoginButtons(!value && !currentUser && Boolean(auth0Client));
+
+      [
+        elements.captchaInput,
+        elements.refreshCaptchaButton,
+        elements.refreshButton,
+        elements.copyProfileButton,
+        elements.logoutButton,
+        elements.copyRedirectButton
+      ].forEach((button) => {
+        if (button) {
+          button.disabled = value;
+        }
+      });
+    }
+
+    function setLoginButtons(enabled) {
+      const canUseLogin = enabled && captchaSolved && !isBusy;
+
+      [
+        elements.googleLoginButton,
+        elements.yandexLoginButton
+      ].forEach((button) => {
+        button.disabled = !canUseLogin;
+      });
+    }
+
+    function showMessage(target, message, type) {
+      const box = target === "profile" ? elements.profileMessage : elements.appMessage;
+      const text = target === "profile" ? elements.profileMessageText : elements.appMessageText;
+
+      if (!box || !text) {
+        return;
+      }
+
+      box.classList.remove("active", "error", "success");
+      text.textContent = message || "";
+
+      if (!message) {
+        return;
+      }
+
+      box.classList.add("active");
+
+      if (type) {
+        box.classList.add(type);
+      }
+
+      renderIcons();
+    }
+
+    function setConnection(type, label) {
+      elements.connectionStatus.classList.remove("ready", "error");
+
+      if (type === "ready") {
+        elements.connectionStatus.classList.add("ready");
+      }
+
+      if (type === "error") {
+        elements.connectionStatus.classList.add("error");
+      }
+
+      elements.connectionText.textContent = label;
+    }
+
+    function updateRedirectInfo() {
+      elements.redirectInfo.textContent = "Redirect URI: " + getRedirectUri();
+    }
+
+    function getRedirectUri() {
+      return window.location.origin + window.location.pathname;
+    }
+
+    function getSafeTargetUrl(targetUrl) {
+      if (!targetUrl || typeof targetUrl !== "string") {
+        return window.location.pathname;
+      }
+
+      if (!targetUrl.startsWith("/")) {
+        return window.location.pathname;
+      }
+
+      if (targetUrl.startsWith("//")) {
+        return window.location.pathname;
+      }
+
+      return targetUrl;
+    }
+
+    function cleanUrl() {
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    }
+
+    function getProvider(sub) {
+      if (!sub || !sub.includes("|")) {
+        return "Auth0";
+      }
+
+      const provider = sub.split("|")[0];
+
+      return provider
+        .replace("google-oauth2", "Google")
+        .replace("auth0", "Auth0");
+    }
+
+    function getFallbackAvatar(name) {
+      return "https://ui-avatars.com/api/?background=0f766e&color=fff&name=" + encodeURIComponent(name || "User");
+    }
+    function getErrorMessage(error) {
+      if (!error) {
+        return "Неизвестная ошибка.";
+      }
+
+      return error.message || error.error_description || error.error || String(error);
+    }
+
+    function waitForAuth0Sdk() {
+      return new Promise((resolve, reject) => {
+        const startedAt = Date.now();
+        const timer = window.setInterval(() => {
+          if (window.auth0 && window.auth0.createAuth0Client) {
+            window.clearInterval(timer);
+            resolve();
+            return;
+          }
+
+          if (Date.now() - startedAt > 7000) {
+            window.clearInterval(timer);
+            reject(new Error("Auth0 SDK не загрузился. Проверьте интернет или CDN."));
+          }
+        }, 80);
+      });
+    }
+
+    function isHttpPage() {
+      return window.location.protocol === "https:" || window.location.protocol === "http:";
+    }
+
+    function applySavedTheme() {
+      const savedTheme = storageGet(STORAGE_KEYS.theme);
+      const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+      const theme = savedTheme || (prefersLight ? "light" : "dark");
+      document.documentElement.dataset.theme = theme;
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+      const next = current === "light" ? "dark" : "light";
+      document.documentElement.dataset.theme = next;
+      storageSet(STORAGE_KEYS.theme, next);
+    }
+
+    function renderIcons() {
+      if (window.lucide && window.lucide.createIcons) {
+        window.lucide.createIcons();
+      }
+    }
+
+    function storageGet(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function storageSet(key, value) {
+      try {
+        localStorage.setItem(key, value);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+  </script>
+</body>
+</html>
